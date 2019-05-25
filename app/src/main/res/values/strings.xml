@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Chat</string>
+    <string name="facebook_app_id">424862491422456</string>
+    <string name="fb_login_protocol_scheme">fb424862491422456</string>
+    <string name="tts_no_engines">There were no Text to Speech Engines located in the device</string>
+
+</resources>
