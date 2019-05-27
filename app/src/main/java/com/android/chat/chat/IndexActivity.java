@@ -268,7 +268,7 @@ public class IndexActivity extends AppCompatActivity {
                                 }
                             });
 
-                            Intent intent = new Intent(IndexActivity.this, Main2Activity.class);
+                            Intent intent = new Intent(IndexActivity.this, MainActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             finish();
@@ -346,7 +346,7 @@ public class IndexActivity extends AppCompatActivity {
                                 }
                             });
 
-                            Intent intent = new Intent(IndexActivity.this, Main2Activity.class);
+                            Intent intent = new Intent(IndexActivity.this, MainActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             finish();

@@ -11,11 +11,12 @@ exports.notify=functions.database.ref('Chats/{id}')
     .onCreate((docSnapshot,context)=>{
             console.log("starting");
 
-        var receiverId=docSnapshot.val().receiver;
         var senderId=docSnapshot.val().sender;
         var msg=docSnapshot.val().message;
         var Id=docSnapshot.key;
+          var receiverId=docSnapshot.val().receiver;
 
+         console.log("snapshot "+docSnapshot.val());
         console.log("receiverID "+receiverId);
         console.log("senderID "+senderId);
         console.log("msg "+msg);
@@ -43,8 +44,15 @@ exports.notify=functions.database.ref('Chats/{id}')
                             notification:{
                                 title:" Message de "+sender,
                                 body:msg,
+                               // icon: 'ic_notification',
+                                //color: '#18d821',
+                               //sound: 'default',
 
                             }
+                            /*,
+                            android:{
+                                  priority: "high"
+                                }*/
 
                         };
                        admin.messaging().send(notif)

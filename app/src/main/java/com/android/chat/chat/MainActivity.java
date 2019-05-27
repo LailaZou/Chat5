@@ -1,21 +1,34 @@
 package com.android.chat.chat;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.chat.chat.Adapter.MessageAdapter;
+import com.android.chat.chat.Model.Chat;
+import com.android.chat.chat.Model.User;
+import com.android.chat.chat.Notifications.Token;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -23,6 +36,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -45,13 +59,28 @@ public class MainActivity extends AppCompatActivity implements AIListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+        FirebaseApp.initializeApp(this);
         auth=FirebaseAuth.getInstance();
 
-        //initialize tts
-        initializeTextToSpeech();
+        updateToken(FirebaseInstanceId.getInstance().getToken());
+
+        Log.d("ttttttttttttttt", "token : "+ FirebaseInstanceId.getInstance().getToken());
+        Log.d("ttttttttttttttt", "token : "+ auth.getCurrentUser().getUid());
+        setContentView(R.layout.activity_main);
+
+
+
+        if(tts==null){
+            //initialize tts
+            initializeTextToSpeech();
+        }
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(onNotice, new IntentFilter("Msg"));
 
         t= (TextView) findViewById(R.id.textView);
+
+
         int permission = ContextCompat.checkSelfPermission(this,
                 Manifest.permission.RECORD_AUDIO);
 
@@ -65,7 +94,15 @@ public class MainActivity extends AppCompatActivity implements AIListener {
         aiService = AIService.getService(this, config);
         aiService.setListener(this);
 
+
     }
+
+    private void updateToken(String token){
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Tokens");
+        Token token1 = new Token(token);
+        reference.child(auth.getCurrentUser().getUid()).setValue(token1);
+    }
+
 
     protected void makeRequest() {
         ActivityCompat.requestPermissions(this,
@@ -111,42 +148,68 @@ public class MainActivity extends AppCompatActivity implements AIListener {
         t.setText("result  "+result.getResult().getFulfillment().getSpeech());
         String resultat=result.getResult().getFulfillment().getSpeech();
         if(resultat.equals("waiting")){
+            Log.d("ffffffffffffffffff","waiting");
+
             final String message=result1.getParameters().get("message").toString().replace("\"","");
             final String username=result1.getParameters().get("username").toString().replace("\"","");
-            speak(" message du contenu "+message+" envoyer a "+username);
 
             final DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users");
-            ref.orderByChild("username").equalTo(username).addValueEventListener(new ValueEventListener() {
+            ref.orderByChild("username").equalTo(username).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+               public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for (DataSnapshot childSnapshot : dataSnapshot.getChildren()){
-                        FirebaseUser firebaseUser = auth.getCurrentUser();
+                   final User user = childSnapshot.getValue(User.class);
+
+                    Log.d("////////////////////", "enter  "+dataSnapshot.getValue());
+
+                    FirebaseUser firebaseUser = auth.getCurrentUser();
                     final String userid = firebaseUser.getUid();
                     reference = FirebaseDatabase.getInstance().getReference("Chats").push();
                         reference.child("sender").setValue(userid);
-                        reference.child("receiver").setValue(childSnapshot.getKey());
+                        reference.child("receiver").setValue(user.getId());
                         reference.child("message").setValue(message);
-                  /*  HashMap<String, String> hashMap = new HashMap<>();
-                    hashMap.put("sender", userid);
-                    Log.d(" receiver", childSnapshot.getKey());
-                    hashMap.put("receiver", childSnapshot.getKey());
-                    hashMap.put("message", message);
-                    reference.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            speak(" Message envoyer à " + username);
-                        }
-                    });*/
-                        speak(" Message envoyer à " + username);
+                        reference.child("isseen").setValue(false);
+                    final DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("Chatlist")
+                            .child(userid)
+                            .child(user.getId());
 
-                    }
-            }
+                    chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            if (!dataSnapshot.exists()){
+                                chatRef.child("id").setValue(user.getId());
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
+                    final DatabaseReference chatRefReceiver = FirebaseDatabase.getInstance().getReference("Chatlist")
+                            .child(user.getId())
+                            .child(userid);
+                    chatRefReceiver.child("id").setValue(userid);
+
+              //    break;
+                   }
+                    speak(" Message envoyer à " + username);
+
+
+
+                }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
 
                 }
             });
+
+
+
+            speak(" message du contenu " + message + " envoyer a " + username);
+
 
         }else{
             speak(result.getResult().getFulfillment().getSpeech());
@@ -191,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements AIListener {
                     finish();
                 } else {
                     tts.setLanguage(Locale.FRENCH);
-                    speak("Bonjour. je suis prete que voulez-vous faire");
+                 //   speak("Bonjour. je suis prete que voulez-vous faire");
                 }
             }
         });
@@ -219,5 +282,78 @@ public class MainActivity extends AppCompatActivity implements AIListener {
     }
 
 
+    private BroadcastReceiver onNotice= new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String pack = intent.getStringExtra("package");
+            String title = intent.getStringExtra("title");
+            String text = intent.getStringExtra("text");
+
+            Log.d("xxxxxxxxxxxxxx", "package "+pack);
+            Log.d("xxxxxxxxxxxxxx", "title "+title);
+            Log.d("xxxxxxxxxxxxxx", "text "+text);
+
+
+           String speech =title+" contenu de message est "+text;
+            tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
+
+
+          /*  TableRow tr = new TableRow(getApplicationContext());
+            tr.setLayoutParams(new TableRow.LayoutParams( TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+            TextView textview = new TextView(getApplicationContext());
+            textview.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT,1.0f));
+            textview.setTextSize(20);
+            textview.setTextColor(Color.parseColor("#0B0719"));
+            textview.setText(Html.fromHtml(pack +"<br><b>" + title + " : </b>" + text));
+            tr.addView(textview);
+            tab.addView(tr);*/
+
+
+
+
+        }
+    };
+
+    public void sendMessage(final User user, String message){
+
+        FirebaseUser firebaseUser = auth.getCurrentUser();
+        final String userid = firebaseUser.getUid();
+        reference = FirebaseDatabase.getInstance().getReference("Chats").push();
+        reference.child("sender").setValue(userid);
+        reference.child("receiver").setValue(user.getId());
+        reference.child("message").setValue(message);
+        reference.child("isseen").setValue(false);
+
+
+        final DatabaseReference chatRef = FirebaseDatabase.getInstance().getReference("Chatlist")
+                .child(userid)
+                .child(user.getId());
+
+        chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()){
+                    chatRef.child("id").setValue(user.getId());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        final DatabaseReference chatRefReceiver = FirebaseDatabase.getInstance().getReference("Chatlist")
+                .child(user.getId())
+                .child(userid);
+        chatRefReceiver.child("id").setValue(userid);
+
+
+
+
+
+
+    }
 }
 

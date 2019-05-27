@@ -143,11 +143,14 @@ public class MessageActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()){
                     Chat chat = snapshot.getValue(Chat.class);
-                    if (chat.getReceiver().equals(fuser.getUid()) && chat.getSender().equals(userid)){
-                        HashMap<String, Object> hashMap = new HashMap<>();
-                        hashMap.put("isseen", true);
-                        snapshot.getRef().updateChildren(hashMap);
+                    if(chat.getReceiver()!=null){
+                        if (chat.getReceiver().equals(fuser.getUid()) && chat.getSender().equals(userid)){
+                            HashMap<String, Object> hashMap = new HashMap<>();
+                            hashMap.put("isseen", true);
+                            snapshot.getRef().updateChildren(hashMap);
+                        }
                     }
+
                 }
             }
 
@@ -211,9 +214,13 @@ public class MessageActivity extends AppCompatActivity {
                 mchat.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()){
                     Chat chat = snapshot.getValue(Chat.class);
-                    if (chat.getReceiver().equals(myid) && chat.getSender().equals(userid) ||
-                            chat.getReceiver().equals(userid) && chat.getSender().equals(myid)){
-                        mchat.add(chat);
+                    if(chat.getReceiver()!=null){
+                        if (chat.getReceiver().equals(myid) && chat.getSender().equals(userid) ||
+                                chat.getReceiver().equals(userid) && chat.getSender().equals(myid)){
+                            mchat.add(chat);
+                        }
+
+
                     }
 
                     messageAdapter = new MessageAdapter(MessageActivity.this, mchat, imageurl);
