@@ -1,6 +1,7 @@
 package com.android.chat.chat;
 
 import android.content.Intent;
+import android.speech.tts.TextToSpeech;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -41,8 +42,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
+import java.util.Locale;
 
-public class IndexActivity extends AppCompatActivity {
+import de.hdodenhof.circleimageview.CircleImageView;
+
+public class BlindIndex extends  AppCompatActivity {
 
     //a constant for detecting the login intent result
     private static final int RC_SIGN_IN = 234;
@@ -72,6 +76,10 @@ public class IndexActivity extends AppCompatActivity {
 
     Button login, register;
 
+    CircleImageView profile_image;
+    TextView username;
+    private TextToSpeech mTTS;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,8 +87,7 @@ public class IndexActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_index);
-
+        setContentView(R.layout.activity_blind_index);
 
 
 
@@ -88,14 +95,11 @@ public class IndexActivity extends AppCompatActivity {
         signInButton = findViewById(R.id.sign_in_button);// google button
         mAuth = FirebaseAuth.getInstance();//google
         db = FirebaseFirestore.getInstance();
-
-
-
         // if the user is already logged in
         FirebaseUser user = mAuth.getCurrentUser();
         if(user!=null){
 
-            Intent intent = new Intent(IndexActivity.this, Main2Activity.class);
+            Intent intent = new Intent(BlindIndex.this, Main2Activity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             finish();
@@ -108,19 +112,61 @@ public class IndexActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(IndexActivity.this, LoginActivity.class));
-            }
+
+                Log.d("nnnnnnnnnnnnnnnn", "blind: "+true);
+
+                Bundle data= new Bundle();
+                data.putString("blind", "yes");
+                Intent a=new Intent(BlindIndex.this,LoginActivity.class);
+                a.putExtras(data);
+                Log.d("nnnnnnnnnnnnnnnn", "blind: "+true);
+
+                startActivity(a);
+                }
         });
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(IndexActivity.this, RegisterActivity.class));
+                Bundle data= new Bundle();
+                data.putString("blind", "yes");
+                Intent a=new Intent(BlindIndex.this,RegisterActivity.class);
+                a.putExtras(data);
+                Log.d("nnnnnnnnnnnnnnnn", "blind: "+true);
+
+                startActivity(a);
             }
         });
         // FirebaseMessaging.getInstance().subscribeToTopic("news");
         // Initialize Facebook Login button
         mcallbackManager = CallbackManager.Factory.create();
         LoginButton loginButton = findViewById(R.id.login_button);
+
+
+        profile_image = findViewById(R.id.profile_image);
+        username = findViewById(R.id.username1);
+        profile_image.setImageResource(R.drawable.logo);
+        username.setText("ChatWithMe");
+
+        mTTS = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    int result = mTTS.setLanguage(Locale.FRANCE);
+
+                    if (result == TextToSpeech.LANG_MISSING_DATA
+                            || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Log.e("TTS", "Language not supported");
+                    } else {
+                        mTTS.speak("Pour accéder à l'application vous aurez besoin de vous connectez. Si vous posséder un compte Google ajouté sur cet appareil, cliquer sur le bouton en bas de l'écran." +
+                                "Si vous posséder un compte facebook ajouté sur cet appareil vous pouvez également l'utiliser pour vous connectez, en cliquant sur le bouton en haut de l'écran." +
+                                " Sinon vous pouvez demander l'aide de quelqu'un d'autre pour vous faire connectez", TextToSpeech.QUEUE_FLUSH, null);
+
+                    }
+                } else {
+                    Log.e("TTS", "Initialization failed");
+                }
+            }
+        });
         loginButton.setReadPermissions("email", "public_profile");       // LoginManager.getInstance().logOut();
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,16 +216,6 @@ public class IndexActivity extends AppCompatActivity {
                 signIn();
             }
         });
-
-
-        // Recuperer le param Accessibility de LowVisionBlind_index
-        Bundle bundle = getIntent().getExtras();
-        final String data =bundle.getString("Accessibility");
-        if(data!=null){
-            // boite de dialog pour dire qu'il est necessaire d activer talkback
-            // Activer TalkBack
-
-        }
     }
 
 
@@ -238,7 +274,7 @@ public class IndexActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             Log.d(TAG, "signInWithCredential:success");
                             final FirebaseUser user = mAuth.getCurrentUser();
-                            Toast.makeText(IndexActivity.this, "User Signed In", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(BlindIndex.this, "User Signed In", Toast.LENGTH_SHORT).show();
 
 
                             DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users");
@@ -246,7 +282,7 @@ public class IndexActivity extends AppCompatActivity {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (!dataSnapshot.exists()) {
-                                        Toast.makeText(IndexActivity.this, " doesnt Exist", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(BlindIndex.this, " doesnt Exist", Toast.LENGTH_SHORT).show();
 
                                         String userid = user.getUid();
                                         photoUrl =  user.getPhotoUrl().toString()+"?type=large";
@@ -257,7 +293,7 @@ public class IndexActivity extends AppCompatActivity {
                                         hashMap.put("username", user.getDisplayName());
                                         // hashMap.put("imageURL",firebaseUser.getPhotoUrl().getPath());
                                         hashMap.put("imageURL", photoUrl);
-                                     //   hashMap.put("type", "google");
+                                        //   hashMap.put("type", "google");
                                         hashMap.put("status", "offline");
                                         hashMap.put("search", user.getDisplayName().toLowerCase());
                                         reference.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -270,7 +306,7 @@ public class IndexActivity extends AppCompatActivity {
                                         });
 
                                     } else {
-                                        Toast.makeText(IndexActivity.this, "  Exist", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(BlindIndex.this, "  Exist", Toast.LENGTH_SHORT).show();
 
                                     }
                                 }
@@ -281,7 +317,7 @@ public class IndexActivity extends AppCompatActivity {
                                 }
                             });
 
-                            Intent intent = new Intent(IndexActivity.this, MainActivity.class);
+                            Intent intent = new Intent(BlindIndex.this, MainActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             finish();
@@ -290,7 +326,7 @@ public class IndexActivity extends AppCompatActivity {
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            Toast.makeText(IndexActivity.this, "Authentication failed.",
+                            Toast.makeText(BlindIndex.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
 
                         }
@@ -316,7 +352,7 @@ public class IndexActivity extends AppCompatActivity {
 
 
                             Log.d(TAG, "signInWithCredential:success");
-                            Toast.makeText(IndexActivity.this, "User Signed In", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(BlindIndex.this, "User Signed In", Toast.LENGTH_SHORT).show();
 
 
                             DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Users");
@@ -324,7 +360,7 @@ public class IndexActivity extends AppCompatActivity {
                                 @Override
                                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                                     if (!dataSnapshot.exists()) {
-                                        Toast.makeText(IndexActivity.this, " doesnt Exist", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(BlindIndex.this, " doesnt Exist", Toast.LENGTH_SHORT).show();
 
                                         String userid = user.getUid();
                                         photoUrl = user.getPhotoUrl().toString();
@@ -335,7 +371,7 @@ public class IndexActivity extends AppCompatActivity {
                                         hashMap.put("username", user.getDisplayName());
                                         // hashMap.put("imageURL",firebaseUser.getPhotoUrl().getPath());
                                         hashMap.put("imageURL", photoUrl);
-                                      //  hashMap.put("type", "facebook");
+                                        //  hashMap.put("type", "facebook");
                                         hashMap.put("status", "offline");
                                         hashMap.put("search", user.getDisplayName().toLowerCase());
                                         reference.setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -348,7 +384,7 @@ public class IndexActivity extends AppCompatActivity {
                                         });
 
                                     } else {
-                                        Toast.makeText(IndexActivity.this, "  Exist", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(BlindIndex.this, "  Exist", Toast.LENGTH_SHORT).show();
 
                                     }
                                 }
@@ -359,7 +395,7 @@ public class IndexActivity extends AppCompatActivity {
                                 }
                             });
 
-                            Intent intent = new Intent(IndexActivity.this, MainActivity.class);
+                            Intent intent = new Intent(BlindIndex.this, MainActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             finish();
@@ -371,7 +407,7 @@ public class IndexActivity extends AppCompatActivity {
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w("TAG", "signInWithCredential:failure", task.getException());
-                            Toast.makeText(IndexActivity.this, "Authentication failed.",
+                            Toast.makeText(BlindIndex.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
 

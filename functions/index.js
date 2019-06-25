@@ -8,68 +8,92 @@ admin.initializeApp({
 });
 console.log("jjiiiiiii");
 exports.notify=functions.database.ref('Chats/{id}')
-    .onCreate((docSnapshot,context)=>{
-            console.log("starting");
+    .onWrite((change, context) =>{
+           // console.log("starting "+docSnapshot);
+        var senderId= change.after.child('sender').val();;
+        var msg=change.after.child('message').val();
+        var Id=change.after.key;
+          var receiverId=change.after.child('receiver').val();
+          var sender=null;
+          var receiver=null;
+      var tokenId=null;
 
-        var senderId=docSnapshot.val().sender;
-        var msg=docSnapshot.val().message;
-        var Id=docSnapshot.key;
-          var receiverId=docSnapshot.val().receiver;
 
-         console.log("snapshot "+docSnapshot.val());
+        // console.log("snapshot "+docSnapshot.val());
+         console.log("snapshot "+change.after);
         console.log("receiverID "+receiverId);
+
         console.log("senderID "+senderId);
         console.log("msg "+msg);
         console.log("Id "+Id);
 
+        admin.database().ref('Tokens/'+receiverId).orderByKey().on('child_added', function (snapshot) {
+                		console.log("snapshot.val=tokn =  "+snapshot.val());
+                           tokenId=snapshot.val();
+                          console.log("token "+tokenId);
+
+
+                      });
+
         admin.database().ref('Users/'+senderId).once('value').then(function (snapshot){
-        var  sender=snapshot.val().username;
+        sender=snapshot.val().username;
         console.log("sender "+sender);
 
-                    admin.database().ref('Users/'+receiverId).once('value').then(function (snapshot){
-                     var receiver=snapshot.val().username;
-                    console.log("receiver "+receiver);
+             admin.database().ref('Users/'+receiverId).once('value').then(function (snapshot){
+                 if(snapshot.val()){
+                         receiver=snapshot.val().username;
+                          console.log("receiver "+receiver);
 
-  		admin.database().ref('Tokens/'+receiverId).orderByKey().on('child_added', function (snapshot) {
-		console.log("snapshot.val=tokn =  "+snapshot.val());
+         if(tokenId!==null && sender!==null && receiver!==null && msg!==null){
+                  console.log(" exist");
+                  console.log("token "+tokenId);
+                  console.log("sender "+sender);
+                  console.log("receiver "+receiver);
+                  console.log("receiver "+msg);
 
-        if(snapshot.val()!==null ){
-          console.log(" exist");
-          var tokenId=snapshot.val();
-          console.log("token "+snapshot.val());
-          console.log("sender "+sender);
 
-                        const notif={
-                            token: tokenId,
-                            notification:{
-                                title:" Message de "+sender,
-                                body:msg,
-                               // icon: 'ic_notification',
-                                //color: '#18d821',
-                               //sound: 'default',
 
-                            }
-                            /*,
-                            android:{
-                                  priority: "high"
-                                }*/
 
-                        };
-                       admin.messaging().send(notif)
-                         .then((response) => {
+                                    var payload = {
+                                      notification: {
+                                        title: "Message de "+sender,
+                                        body: ""+msg,
+                                       icon: 'ic_logo',
+                                       color: '#4568dc',
+                                      sound: 'default',
+                                      }
+                                    };
+                                     var options = {
+                                      priority: "high",
+                                      timeToLive: 60 * 60 *24
+                                    };
+                                    admin.messaging().sendToDevice(tokenId, payload, options)
+                                      .then(function(response) {
+                                        console.log("Successfully sent message:", response);
+                                      })
+                                      .catch(function(error) {
+                                        console.log("Error sending message:", error);
+                                      });
+                                     console.log("before breaking");
 
-                          return console.log('Successfully sent message:', response);
-                         })
-                         .catch((error) => {
-                          return  console.log('Error sending message:', error);
-                         });
+                                        return;
+                 	                console.log("after breaking");
 
-        }else
-         	console.log("doesnt exist");
-      });
 
-                    });
+
+                }else
+                 	console.log("doesnt exist");
+
+                 }
+                 });
+
+
         });
+
+
+
+
+
 
 
 

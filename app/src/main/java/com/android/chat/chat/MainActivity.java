@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -15,19 +14,19 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Html;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.TableRow;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.chat.chat.Adapter.MessageAdapter;
-import com.android.chat.chat.Model.Chat;
 import com.android.chat.chat.Model.User;
 import com.android.chat.chat.Notifications.Token;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.android.chat.chat.Readnotification.MainActivityNotif;
+import com.bumptech.glide.Glide;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -38,7 +37,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
 
-import java.util.HashMap;
 import java.util.Locale;
 
 import ai.api.AIListener;
@@ -47,6 +45,7 @@ import ai.api.android.AIService;
 import ai.api.model.AIError;
 import ai.api.model.AIResponse;
 import ai.api.model.Result;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity implements AIListener {
     AIService aiService;
@@ -54,11 +53,24 @@ public class MainActivity extends AppCompatActivity implements AIListener {
     TextToSpeech tts;
     FirebaseAuth auth;
     DatabaseReference reference;
+    Button ReadNotif;
 
+    FirebaseUser firebaseUser;
+
+    CircleImageView profile_image;
+    TextView username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_main);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("");
+        //Returne button
+     //   getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         FirebaseApp.initializeApp(this);
         auth=FirebaseAuth.getInstance();
@@ -67,9 +79,35 @@ public class MainActivity extends AppCompatActivity implements AIListener {
 
         Log.d("ttttttttttttttt", "token : "+ FirebaseInstanceId.getInstance().getToken());
         Log.d("ttttttttttttttt", "token : "+ auth.getCurrentUser().getUid());
-        setContentView(R.layout.activity_main);
+        profile_image = findViewById(R.id.profile_image);
+        username = findViewById(R.id.username);
 
 
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        reference = FirebaseDatabase.getInstance().getReference("Users").child(firebaseUser.getUid());
+
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                username.setText(user.getUsername());
+                if(user.getImageURL()!=null){
+                    if (user.getImageURL().equals("default")){
+                        profile_image.setImageResource(R.mipmap.ic_launcher);
+                    } else {
+
+                        //change this
+                        Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
 
         if(tts==null){
             //initialize tts
@@ -94,7 +132,41 @@ public class MainActivity extends AppCompatActivity implements AIListener {
         aiService = AIService.getService(this, config);
         aiService.setListener(this);
 
+       // ReadNotif=findViewById(R.id.ReadNotif);
+//        ReadNotif.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(MainActivity.this, MainActivityNotif.class);
+//                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+//                startActivity(intent);
+//            }
+//        });
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu2, menu);
+        return true;
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+
+            case  R.id.logout1:
+                FirebaseAuth.getInstance().signOut();
+                // change this code beacuse your app will crash
+                startActivity(new Intent(MainActivity.this, Global_IndexActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                return true;
+            case R.id.Parametre:
+
+                Intent intent = new Intent(MainActivity.this, MainActivityNotif.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                return true;
+
+        }
+
+        return false;
     }
 
     private void updateToken(String token){
@@ -145,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements AIListener {
         Log.d("anu",result.toString());
         Result result1=result.getResult();
         // t.setText("Query "+result1.getResolvedQuery()+" action: "+result1.getAction());
-        t.setText("result  "+result.getResult().getFulfillment().getSpeech());
+        t.setText(result.getResult().getFulfillment().getSpeech());
         String resultat=result.getResult().getFulfillment().getSpeech();
         if(resultat.equals("waiting")){
             Log.d("ffffffffffffffffff","waiting");
@@ -194,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements AIListener {
 
               //    break;
                    }
-                    speak(" Message envoyer à " + username);
+                    speak(" message du contenu " + message + " envoyer a " + username);
 
 
 
@@ -208,7 +280,6 @@ public class MainActivity extends AppCompatActivity implements AIListener {
 
 
 
-            speak(" message du contenu " + message + " envoyer a " + username);
 
 
         }else{
@@ -254,7 +325,7 @@ public class MainActivity extends AppCompatActivity implements AIListener {
                     finish();
                 } else {
                     tts.setLanguage(Locale.FRENCH);
-                 //   speak("Bonjour. je suis prete que voulez-vous faire");
+                  //  speak("Bonjour. je suis prete que voulez-vous faire");
                 }
             }
         });
@@ -294,9 +365,15 @@ public class MainActivity extends AppCompatActivity implements AIListener {
             Log.d("xxxxxxxxxxxxxx", "title "+title);
             Log.d("xxxxxxxxxxxxxx", "text "+text);
 
+            String speech =title+" contenu de message est "+text;
+//
+//            Intent speechIntent = new Intent();
+//            speechIntent.setClass(context, ReadTheMessage.class);
+//            speechIntent.putExtra("MESSAGE", speech);
+//            speechIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |  Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+//            context.startActivity(speechIntent);
 
-           String speech =title+" contenu de message est "+text;
-            tts.speak(speech, TextToSpeech.QUEUE_FLUSH, null);
+        //    speak(speech);
 
 
           /*  TableRow tr = new TableRow(getApplicationContext());

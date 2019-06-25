@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/logout1"
+        android:title="Déconnexion"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/Parametre"
+        android:title="Paramétres"
+        app:showAsAction="never"/>
+
+</menu>

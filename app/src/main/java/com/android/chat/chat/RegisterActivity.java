@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -66,6 +67,8 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void register(final String username, String email, String password){
+        Bundle bundle = getIntent().getExtras();
+        final String data =bundle.getString("blind");
 
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -90,6 +93,13 @@ public class RegisterActivity extends AppCompatActivity {
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()){
                                         Intent intent = new Intent(RegisterActivity.this, Main2Activity.class);
+                                        Log.d("rrrrrrrrrrrrrrrrrrrrrr", "blind: "+data);
+
+                                        if(data!=null){
+
+                                            intent = new Intent(RegisterActivity.this, MainActivity.class);
+
+                                        }
                                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                         startActivity(intent);
                                         finish();

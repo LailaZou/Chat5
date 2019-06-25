@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:text="register"
             android:id="@+id/btn_register"
-            android:background="@color/colorPrimaryDark"
+            android:background="@drawable/gradient"
             android:layout_marginTop="10dp"
             android:textColor="#fff"/>
 
