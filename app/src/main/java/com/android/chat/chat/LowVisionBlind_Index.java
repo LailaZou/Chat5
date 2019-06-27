@@ -57,6 +57,9 @@ public class LowVisionBlind_Index extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent=new Intent(LowVisionBlind_Index.this,BlindIndex.class);
                 startActivity(intent);
+                onDestroy();
+              //  finish();
+
             }
         });
 
@@ -76,6 +79,10 @@ public class LowVisionBlind_Index extends AppCompatActivity {
                 Log.d("nnnnnnnnnnnnnnnn", "blind: "+true);
 
                 startActivity(a);
+                onDestroy();
+              //  finish();
+
+
             }
         });
 

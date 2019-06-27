@@ -98,7 +98,9 @@ public class IndexActivity extends AppCompatActivity {
             Intent intent = new Intent(IndexActivity.this, Main2Activity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            finish();
+          //  finish();
+            onDestroy();
+
 
         }
 
@@ -281,10 +283,11 @@ public class IndexActivity extends AppCompatActivity {
                                 }
                             });
 
-                            Intent intent = new Intent(IndexActivity.this, MainActivity.class);
+                            Intent intent = new Intent(IndexActivity.this, Main2Activity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
-                            finish();
+                           // finish();
+                            onDestroy();
 
 
                         } else {
@@ -359,10 +362,12 @@ public class IndexActivity extends AppCompatActivity {
                                 }
                             });
 
-                            Intent intent = new Intent(IndexActivity.this, MainActivity.class);
+                            Intent intent = new Intent(IndexActivity.this, Main2Activity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
-                            finish();
+                           // finish();
+                            onDestroy();
+
 
                           /*  Intent homepage = new Intent(MainActivity.this, Navigation_Drawer.class);
                             homepage.putExtra("photo", photoUrl);

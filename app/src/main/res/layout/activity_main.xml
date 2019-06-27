@@ -40,7 +40,7 @@ tools:context=".MainActivity">
 
     <Button
         android:layout_width="match_parent"
-        android:layout_height="440dp"
+        android:layout_height="397dp"
         android:background="@drawable/record3"
         android:onClick="buttonClicked"
         android:text="" />
@@ -51,7 +51,9 @@ tools:context=".MainActivity">
     android:layout_height="wrap_content"
     android:text=""
     android:id="@+id/textView"
-        android:layout_marginLeft="15dp"
+        android:textSize="14dp"
+        android:layout_marginLeft="5dp"
+        android:textAlignment="center"
     />
 
 </LinearLayout>

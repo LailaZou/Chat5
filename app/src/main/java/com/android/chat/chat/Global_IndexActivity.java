@@ -29,7 +29,9 @@ public class Global_IndexActivity extends  AppCompatActivity {
 
                 Intent homeIntent = new Intent(Global_IndexActivity.this, LowVisionBlind_Index.class);
                 startActivity(homeIntent);
-                finish();
+        //        finish();
+
+                   onDestroy();
             }
 
         },SPLASH_TIME_OUT);
@@ -75,12 +77,13 @@ public class Global_IndexActivity extends  AppCompatActivity {
 
                 Bundle data= new Bundle();
                 data.putString("null", null);
-                Intent a=new Intent(Global_IndexActivity.this,LoginActivity.class);
+                Intent a=new Intent(Global_IndexActivity.this,IndexActivity.class);
                 a.putExtras(data);
                 startActivity(a);
-                onDestroy();
 
                 mTTS.stop();
+               // finish();
+                onDestroy();
             }
         });
 

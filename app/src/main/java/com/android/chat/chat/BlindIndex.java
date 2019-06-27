@@ -102,7 +102,7 @@ public class BlindIndex extends  AppCompatActivity {
             Intent intent = new Intent(BlindIndex.this, Main2Activity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-            finish();
+            onDestroy();
 
         }
 
@@ -122,7 +122,9 @@ public class BlindIndex extends  AppCompatActivity {
                 Log.d("nnnnnnnnnnnnnnnn", "blind: "+true);
 
                 startActivity(a);
-                }
+                onDestroy();
+
+            }
         });
         register.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,6 +136,8 @@ public class BlindIndex extends  AppCompatActivity {
                 Log.d("nnnnnnnnnnnnnnnn", "blind: "+true);
 
                 startActivity(a);
+                onDestroy();
+
             }
         });
         // FirebaseMessaging.getInstance().subscribeToTopic("news");
@@ -320,7 +324,9 @@ public class BlindIndex extends  AppCompatActivity {
                             Intent intent = new Intent(BlindIndex.this, MainActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
+                       //     onDestroy();
                             finish();
+
 
 
                         } else {
@@ -399,6 +405,7 @@ public class BlindIndex extends  AppCompatActivity {
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             finish();
+                           // onDestroy();
 
                           /*  Intent homepage = new Intent(MainActivity.this, Navigation_Drawer.class);
                             homepage.putExtra("photo", photoUrl);

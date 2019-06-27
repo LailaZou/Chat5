@@ -26,6 +26,7 @@ public class LoginActivity extends AppCompatActivity {
 
     FirebaseAuth auth;
     TextView forgot_password;
+    String data=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +41,11 @@ public class LoginActivity extends AppCompatActivity {
 
         Bundle bundle = getIntent().getExtras();
        // final String data  = bundle.getString("blind");
-        final String data =bundle.getString("blind");
+
+        if(bundle!=null){
+           data =bundle.getString("blind");
+
+        }
 
         auth = FirebaseAuth.getInstance();
 
@@ -81,7 +86,9 @@ public class LoginActivity extends AppCompatActivity {
                                       //  Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                                         startActivity(intent);
-                                        finish();
+                                     //   finish();
+                                        onDestroy();
+
                                     } else {
                                         Toast.makeText(LoginActivity.this, "Authentication failed!", Toast.LENGTH_SHORT).show();
                                     }

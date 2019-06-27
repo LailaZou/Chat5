@@ -317,6 +317,7 @@ public class MainActivity extends AppCompatActivity implements AIListener {
 
 
     private void initializeTextToSpeech() {
+
         tts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
@@ -325,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements AIListener {
                     finish();
                 } else {
                     tts.setLanguage(Locale.FRENCH);
-                  //  speak("Bonjour. je suis prete que voulez-vous faire");
+                speak("Bonjour "+username.getText().toString()+" comment je peux vous aider");
                 }
             }
         });
